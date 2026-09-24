@@ -1,0 +1,23 @@
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "INDO PRIVATE SEARCH"
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  secret_key: "CHANGE-ME-BEFORE-INTERNET-EXPOSURE"
+  limiter: false
+  public_instance: false
+  image_proxy: true
+  default_http_headers:
+    X-Content-Type-Options: nosniff
+    X-Robots-Tag: noindex, nofollow
+    Referrer-Policy: no-referrer
