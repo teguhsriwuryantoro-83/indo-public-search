@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061321"><title>MAZTEGE • YouTube Archive Search</title>
+<style>
+:root{color-scheme:dark;--bg:#061321;--panel:#0e2033;--line:#23445e;--cyan:#48dfff;--muted:#a5bfd1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#123b59,var(--bg) 55%);color:#f1f8ff;font:15px system-ui,Arial,sans-serif}
+main{max-width:900px;margin:auto;padding:24px 15px 60px}.brand{text-align:center;color:var(--cyan);font-size:12px;letter-spacing:3px;font-weight:900}
+.logo{width:66px;height:66px;border:1px solid var(--cyan);border-radius:20px;margin:0 auto 12px;display:grid;place-items:center;font-size:25px;font-weight:950;box-shadow:0 0 30px #00c8ff44}
+h1{text-align:center;font-size:clamp(23px,5vw,34px);margin:7px 0}.sub{text-align:center;color:var(--muted);line-height:1.5;margin:0 auto 22px;max-width:650px}
+.panel{background:#0e2033eF;border:1px solid var(--line);border-radius:19px;padding:17px;margin:13px 0;box-shadow:0 16px 42px #0005}
+label{display:block;font-size:13px;font-weight:800;margin:0 0 7px}.field{width:100%;background:#061522;border:1px solid #31536c;color:#fff;padding:13px;border-radius:11px;font-size:16px;min-height:48px;outline:none}.field:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #48dfff20}
+.grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:11px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+button{border:0;border-radius:12px;background:var(--cyan);color:#03121e;font-weight:900;font-size:15px;padding:14px 18px;min-height:48px;cursor:pointer}
+button.secondary{background:#18334b;color:#eaf8ff;border:1px solid #34536b}
+button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:10px;margin-top:14px}.actions button{flex:1}
+.status{color:#9bc8df;font-size:13px;margin-top:12px;min-height:20px}.status.error{color:#ff9b9b}
+.results-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.results-head h2{font-size:19px;margin:0}
+.video{display:grid;grid-template-columns:190px 1fr;gap:14px;padding:13px;background:#091a2a;border:1px solid var(--line);border-radius:14px;margin-top:12px}
+.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px;background:#15283a}
+.video h3{font-size:16px;line-height:1.35;margin:0 0 8px}.meta{font-size:12px;color:#9eb8ca;line-height:1.7}.open{display:inline-block;margin-top:9px;color:var(--cyan);font-weight:800;text-decoration:none}
+.pager{display:flex;gap:10px;margin-top:14px}.pager button{flex:1}
+.small{font-size:11px;color:#819bad;line-height:1.55}.empty{text-align:center;padding:28px 10px;color:var(--muted)}
+@media(max-width:620px){.grid{grid-template-columns:1fr 1fr}.grid label:first-child{grid-column:1/-1}.video{grid-template-columns:1fr}.thumb{max-height:220px}.panel{padding:14px}}
+</style></head>
+<body><main>
+<div class="logo">M</div><div class="brand">MAZTEGE • ARSIP VIDEO</div>
+<h1>YouTube Archive Search</h1><p class="sub">Cari video berdasarkan tahun dan bulan upload. Kata kunci dan tanggal dipilih secara terpisah.</p>
+<section class="panel">
+<label for="q">Kata kunci video</label><input id="q" class="field" placeholder="Contoh: Marinir Indonesia" autocomplete="off">
+<div class="grid" style="margin-top:13px">
+<div><label for="year">Tahun upload</label><select id="year" class="field"></select></div>
+<div><label for="month">Bulan</label><select id="month" class="field"><option value="">Semua bulan</option><option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option></select></div>
+<div><label for="order">Urutkan</label><select id="order" class="field"><option value="relevance">Paling relevan</option><option value="date">Tanggal upload</option><option value="viewCount">Jumlah tayangan</option><option value="rating">Rating</option></select></div>
+</div>
+<div class="actions"><button id="search">CARI VIDEO</button><button id="clear" class="secondary">RESET</button></div>
+<div id="status" class="status" aria-live="polite">Siap mencari. Pilih tahun upload, lalu tekan CARI VIDEO.</div>
+<p class="small">Hasil memakai tanggal publikasi YouTube Data API. Tanggal publikasi tidak selalu sama dengan tanggal kejadian atau tanggal rekaman dibuat. Hasil pencarian API juga tidak menjamin seluruh video yang pernah diunggah akan ditemukan.</p>
+</section>
+<section class="panel"><div class="results-head"><h2>Hasil video</h2><span id="count" class="small"></span></div><div id="results" class="empty">Belum ada hasil pencarian.</div><div class="pager"><button id="more" class="secondary" disabled>MUAT HASIL BERIKUTNYA</button></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id), currentYear=new Date().getFullYear();let nextToken=null,lastQuery=null;
+for(let y=currentYear;y>=2005;y--){const o=document.createElement('option');o.value=y;o.textContent=y;$('year').appendChild(o)}
+$('year').value=Math.min(2006,currentYear);
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function date(v){if(!v)return 'Tanggal tidak tersedia';return new Intl.DateTimeFormat('id-ID',{dateStyle:'long',timeZone:'Asia/Jakarta'}).format(new Date(v))}
+function number(v){return v?new Intl.NumberFormat('id-ID').format(Number(v))+' tayangan':'Statistik tidak tersedia'}
+function duration(iso){if(!iso)return '';const m=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);if(!m)return '';return [m[1],m[2],m[3]].map(x=>Number(x||0)).reduce((a,v,i)=>a+(i===0?v*3600:i===1?v*60:v),0)}
+function render(items,append=false){if(!append)$('results').innerHTML='';if(!items.length&&!append){$('results').innerHTML='<div class="empty">Tidak ditemukan video pada filter ini. Coba kata kunci lain atau tahun lain.</div>';return}
+items.forEach(v=>{const el=document.createElement('article');el.className='video';el.innerHTML='<a href="'+esc(v.url)+'" target="_blank" rel="noopener"><img class="thumb" src="'+esc(v.thumbnail)+'" loading="lazy" alt=""></a><div><h3>'+esc(v.title)+'</h3><div class="meta">Kanal: '+esc(v.channelTitle)+'<br>Upload: '+esc(date(v.publishedAt))+'<br>'+esc(number(v.viewCount))+'</div><a class="open" href="'+esc(v.url)+'" target="_blank" rel="noopener">BUKA VIDEO DI YOUTUBE ↗</a></div>'; $('results').appendChild(el)})}
+async function search(more=false){const q=$('q').value.trim(),year=Number($('year').value),month=$('month').value,order=$('order').value;if(q.length<2){$('status').textContent='Masukkan kata kunci minimal 2 karakter.';$('status').className='status error';return}
+if(!more){nextToken=null;lastQuery={q,year,month,order};$('results').innerHTML=''}
+$('search').disabled=true;$('more').disabled=true;$('status').className='status';$('status').textContent='Menghubungi YouTube Data API…';
+try{const p=new URLSearchParams({q,year,order,maxResults:'25'});if(month)p.set('month',month);if(more&&nextToken)p.set('pageToken',nextToken);const r=await fetch('/api/search?'+p.toString());const d=await r.json();if(!r.ok)throw new Error(d.error||'Pencarian gagal');render(d.items,more);nextToken=d.nextPageToken;$('more').disabled=!nextToken;$('count').textContent=(d.totalResults||0).toLocaleString('id-ID')+' perkiraan hasil';$('status').textContent='Selesai • '+q+' • '+(month?$('month').selectedOptions[0].text+' ':'')+year+' • '+d.items.length+' video pada halaman ini.'}
+catch(e){$('status').className='status error';$('status').textContent=e.message;if(!more)$('results').innerHTML='<div class="empty">Pencarian belum dapat dijalankan. Periksa konfigurasi server atau kuota API.</div>'}
+finally{$('search').disabled=false}}
+$('search').addEventListener('click',()=>search(false));$('more').addEventListener('click',()=>search(true));$('q').addEventListener('keydown',e=>{if(e.key==='Enter')search(false)});$('clear').addEventListener('click',()=>{$('q').value='';$('year').value=Math.min(2006,currentYear);$('month').value='';$('order').value='relevance';$('results').innerHTML='<div class="empty">Belum ada hasil pencarian.</div>';$('status').textContent='Siap mencari.';$('count').textContent='';nextToken=null;$('more').disabled=true});
+</script></body></html>
